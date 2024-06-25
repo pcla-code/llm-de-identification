@@ -4,13 +4,14 @@ import numpy as np
 import string
 from sklearn.metrics import cohen_kappa_score
 
-output_folder = 'OpenAI_coded_files/'
+# Specify the relative folder paths for OpenAI_redacted_files
+output_folder = 'OpenAI_redacted_files/'
 
 def count_redacted(text):
     return text.count("[REDACTED]")
 
 def clean_text(text):
-    # Checks if text is a string, convert to string if not
+    # Checks if text is a string, converts to string if not
     if not isinstance(text, str):
         text = str(text)
 
@@ -20,9 +21,9 @@ def clean_text(text):
     return words
 
 def add_word_lists_to_df(df):
-    df['word_list_coded'] = df['post_text_coded'].apply(clean_text)
+    df['word_list_coded'] = df['post_text_human_coded'].apply(clean_text)
     df['word_list_openai'] = df['post_text_OPENAI_coded'].apply(clean_text)
-    df['word_list_corrected'] = df['corrections'].apply(clean_text)
+    
     return df
 
 def calculate_metrics(df):
@@ -42,10 +43,9 @@ def calculate_metrics(df):
         row_fp = 0
         row_fn = 0
         row_tn = 0
-        if pd.notnull(row['corrections']):
-           human_words = row['word_list_corrected'] 
-        else:
-            human_words = row['word_list_coded']
+        
+       
+        human_words = row['word_list_coded']
         openai_words = row['word_list_openai']
         
         for hw, ow in zip(human_words, openai_words):
@@ -85,13 +85,6 @@ def calculate_metrics(df):
 
     return accuracy, precision, recall, kappa, tp_counts, tn_counts, fp_counts, fn_counts
 
-def update_csv_with_metric(df, prompt_number, original_file, metric_value, file_name):
-    if original_file not in df.columns:
-        df[original_file] = np.nan
-    df.at[prompt_number, original_file] = metric_value
-    df.to_csv(file_name, index=False)
-
-
 prompt_df = pd.read_csv('Prompts.csv', encoding_errors='ignore')
 precision_df = pd.DataFrame(columns=prompt_df.columns)
 recall_df = pd.DataFrame(columns=prompt_df.columns)
@@ -122,12 +115,6 @@ for file in all_csv_files:
     prompt_number = int(prompt_number_part.replace('prompt', ''))
     original_file_name = file.split("_prompt")[0] + ".csv"
 
-    # Updates metric DataFrames and CSVs
-    update_csv_with_metric(precision_df, prompt_number, original_file_name, precision, 'Precisions.csv')
-    update_csv_with_metric(recall_df, prompt_number, original_file_name, recall, 'Recalls.csv')
-    update_csv_with_metric(accuracy_df, prompt_number, original_file_name, accuracy, 'Accuracies.csv')
-    update_csv_with_metric(kappa_df, prompt_number, original_file_name, kappa, 'Kappas.csv')
-
     print(f"Updated Metrics for {original_file_name}, Prompt {prompt_number}: Accuracy:{accuracy:.2f}, Precision: {precision:.2f}, Recall: {recall:.2f}, Kappa: {kappa:.2f}")
 
     df.to_csv(file_path, index=False)
@@ -146,4 +133,4 @@ for file in all_csv_files:
 all_metrics_df = pd.DataFrame(all_metrics)
 
 # Saves all metrics to a CSV file
-all_metrics_df.to_csv('AllMetrics_8p.csv', index=False)
+all_metrics_df.to_csv('Metrics.csv', index=False)
