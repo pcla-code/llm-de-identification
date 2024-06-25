@@ -35,7 +35,7 @@ human_redacted_files: These are the files that humans have de-identified.
 Here's how to initiate the project:
 
 Step 1: Organize Data
-Place your original files with PII in the original_files folder and human redacted files in human_redacted_files folder. We have added some sample files for your reference in the folder.
+Place your original files with PII in the original_files folder and human redacted files in human_redacted_files folder. We have added some sample files for your reference in the folder. Please note that we will not be able to share the original dataset as it consists of sensitive data.
 
 Step 2: cd to the repository and add OpenAI API Key to de_identified_csv_generator.py
 
