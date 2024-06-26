@@ -5,7 +5,8 @@ import string
 from sklearn.metrics import cohen_kappa_score
 
 # Specify the relative folder paths for OpenAI_redacted_files
-output_folder = 'OpenAI_redacted_files/'
+output_folder = 'results/OpenAI_redacted_files/'
+human_redacted_folder = 'human_redacted_files/'
 
 def count_redacted(text):
     return text.count("[REDACTED]")
@@ -17,12 +18,12 @@ def clean_text(text):
 
     text = text.translate(str.maketrans(string.punctuation, ' ' * len(string.punctuation)))
     words = text.split()
-    words = [word for word in words if word.isalnum() and word.lower() not in ['a', 'an', 'the','Dr']]
+    words = [word for word in words if word.isalnum() and word.lower() not in ['a', 'an', 'the']]
     return words
 
 def add_word_lists_to_df(df):
-    df['word_list_coded'] = df['post_text_human_coded'].apply(clean_text)
-    df['word_list_openai'] = df['post_text_OPENAI_coded'].apply(clean_text)
+    df['word_list_redacted'] = df['post_text_human_redacted'].apply(clean_text)
+    df['word_list_openai_redacted'] = df['post_text_OpenAI_redacted'].apply(clean_text)
     
     return df
 
@@ -45,8 +46,8 @@ def calculate_metrics(df):
         row_tn = 0
         
        
-        human_words = row['word_list_coded']
-        openai_words = row['word_list_openai']
+        human_words = row['word_list_redacted']
+        openai_words = row['word_list_openai_redacted']
         
         for hw, ow in zip(human_words, openai_words):
             total_words += 1
@@ -85,19 +86,24 @@ def calculate_metrics(df):
 
     return accuracy, precision, recall, kappa, tp_counts, tn_counts, fp_counts, fn_counts
 
-prompt_df = pd.read_csv('Prompts.csv', encoding_errors='ignore')
+prompt_df = pd.read_csv('prompts.csv', encoding_errors='ignore')
 precision_df = pd.DataFrame(columns=prompt_df.columns)
 recall_df = pd.DataFrame(columns=prompt_df.columns)
 accuracy_df = pd.DataFrame(columns=prompt_df.columns)
 kappa_df = pd.DataFrame(columns=prompt_df.columns)
 
 all_csv_files = [f for f in os.listdir(output_folder) if f.endswith('.csv')]
+human_redacted_files = [f for f in os.listdir(human_redacted_folder) if f.endswith('.csv')]
 all_metrics = []
 
 for file in all_csv_files:
     file_path = os.path.join(output_folder, file)
     df = pd.read_csv(file_path, encoding='utf-8', encoding_errors='ignore')
-
+    original_file_name = file.split("_prompt")[0] + ".csv"
+    df_human = pd.read_csv(os.path.join(human_redacted_folder, original_file_name), encoding='utf-8', encoding_errors='ignore')
+    if 'post_text_human_redacted' not in df.columns:
+        df = pd.merge(df, df_human, on='id')
+    
     # Adds word lists as new columns
     df = add_word_lists_to_df(df)
 
@@ -133,4 +139,4 @@ for file in all_csv_files:
 all_metrics_df = pd.DataFrame(all_metrics)
 
 # Saves all metrics to a CSV file
-all_metrics_df.to_csv('Metrics.csv', index=False)
+all_metrics_df.to_csv('metrics.csv', index=False)
