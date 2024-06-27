@@ -1,8 +1,6 @@
 import pandas as pd
 import os
-import numpy as np
 import string
-from sklearn.metrics import cohen_kappa_score
 
 # Specify the relative folder paths for OpenAI_redacted_files
 output_folder = 'results/OpenAI_redacted_files/'
@@ -24,7 +22,6 @@ def clean_text(text):
 def add_word_lists_to_df(df):
     df['word_list_redacted'] = df['post_text_human_redacted'].apply(clean_text)
     df['word_list_openai_redacted'] = df['post_text_OpenAI_redacted'].apply(clean_text)
-    
     return df
 
 def calculate_metrics(df):
@@ -44,8 +41,7 @@ def calculate_metrics(df):
         row_fp = 0
         row_fn = 0
         row_tn = 0
-        
-       
+   
         human_words = row['word_list_redacted']
         openai_words = row['word_list_openai_redacted']
         
@@ -73,7 +69,6 @@ def calculate_metrics(df):
         df.at[_, 'false_positives'] = row_fp
         df.at[_, 'false_negatives'] = row_fn
         
-
     precision = total_true_positives / (total_true_positives + total_false_positives)
     recall = total_true_positives / (total_true_positives + total_false_negatives)
     accuracy = (total_true_positives + total_true_negatives) / (
@@ -139,4 +134,4 @@ for file in all_csv_files:
 all_metrics_df = pd.DataFrame(all_metrics)
 
 # Saves all metrics to a CSV file
-all_metrics_df.to_csv('metrics.csv', index=False)
+all_metrics_df.to_csv('results\metrics.csv', index=False)
