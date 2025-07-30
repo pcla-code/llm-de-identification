@@ -35,6 +35,10 @@ Before getting started, ensure you have the following prerequisites:
 
 **Python Environment**: Make sure you have Python installed on your system.
 
+**Install packages**: Install required packages:
+
+`pip install -r requirements.txt`
+
 **OpenAI API Key**: Obtain an API key from OpenAI to access their GPT-4 model for text generation. You can sign up for an API key on the OpenAI platform.
 
 **Input Data**: Prepare the following input data:
